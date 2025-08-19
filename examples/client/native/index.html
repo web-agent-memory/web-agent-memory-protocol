@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Protocol - Direct API Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .status.success { background: #d4edda; border-left: 4px solid #28a745; }
+    .status.error { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .status.warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+
+    .code-block {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 14px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+
+    button:hover { background: #0056b3; }
+    button:disabled { background: #6c757d; cursor: not-allowed; }
+
+    .result {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 13px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .benefit {
+      background: #e7f3ff;
+      border-left: 4px solid #007bff;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    .example-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Memory Protocol - Direct API Usage</h1>
+    <p>Zero-dependency integration with memory extensions</p>
+  </div>
+
+  <div id="status" class="status warning">
+    <strong>Status:</strong> <span id="statusText">Checking for Memory Protocol...</span>
+  </div>
+
+  <div class="benefit">
+    <h3>🚀 Benefits of Direct API Usage</h3>
+    <ul>
+      <li><strong>Zero Dependencies:</strong> No SDK installation required</li>
+      <li><strong>Minimal Code:</strong> ~10 lines for full functionality</li>
+      <li><strong>Fast Loading:</strong> No additional network requests</li>
+      <li><strong>Standard API:</strong> Follows browser API patterns</li>
+      <li><strong>Future-Proof:</strong> Works with any compatible extension</li>
+    </ul>
+  </div>
+
+  <div class="example-section">
+    <h2>Basic Usage Example</h2>
+    
+    <div class="code-block">
+      <code>// Simple context retrieval - just 5 lines!
+async function getMemoryContext() {
+  if (window.agentMemory) {
+    const result = await window.agentMemory.getContext({
+      relevanceQuery: 'web development',
+      timeRange: { start: Date.now() - (7 * 24 * 60 * 60 * 1000) } // Last 7 days
+    });
+    return result.success ? result.data : null;
+  }
+  return null;
+}</code>
+    </div>
+
+    <button onclick="testBasicUsage()">Test Basic Usage</button>
+    <button onclick="testWithOptions()">Test with Options</button>
+    <button onclick="testMultiProvider()">Test Multi-Provider</button>
+    <button onclick="clearResults()">Clear Results</button>
+
+    <div id="basicResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="example-section">
+    <h2>Advanced Features</h2>
+    
+    <div class="code-block">
+      <code>// Check protocol status
+const status = window.agentMemory?.getStatus();
+
+// Get all providers
+const providers = window.agentMemory?.getProviders() || [];
+
+// Request permission
+const permission = await window.agentMemory.requestPermission({
+  appName: 'My AI Assistant',
+  appId: 'my-ai-assistant'
+});</code>
+    </div>
+
+    <button onclick="checkStatus()">Check Status</button>
+    <button onclick="listProviders()">List Providers</button>
+    <button onclick="requestPermission()">Request Permission</button>
+
+    <div id="advancedResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="example-section">
+    <h2>Error Handling</h2>
+    
+    <div class="code-block">
+      <code>// Complete error handling example
+async function safeGetContext(options = {}) {
+  // Check if protocol exists
+  if (!window.agentMemory) {
+    return { error: 'Protocol not available' };
+  }
+
+  // Check for providers
+  const providers = window.agentMemory.getProviders();
+  if (providers.length === 0) {
+    return { error: 'No providers installed' };
+  }
+
+  try {
+    const result = await window.agentMemory.getContext(options);
+    return result;
+  } catch (error) {
+    return { error: error.message };
+  }
+}</code>
+    </div>
+
+    <button onclick="testErrorHandling()">Test Error Handling</button>
+    <div id="errorResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="example-section">
+    <h2>Production Ready Code</h2>
+    
+    <div class="code-block">
+      <code>// Production-ready implementation
+class MemoryProtocolClient {
+  constructor(config = {}) {
+    this.config = {
+      timeout: 2000,
+      ...config
+    };
+  }
+
+  async init() {
+    // Wait for protocol to load
+    if (!window.agentMemory) {
+      await this.waitForProtocol();
+    }
+    
+    this.available = !!window.agentMemory;
+    return this.available;
+  }
+
+  waitForProtocol() {
+    return new Promise(resolve => {
+      if (window.agentMemory) {
+        resolve();
+        return;
+      }
+
+      const timeout = setTimeout(resolve, this.config.timeout);
+      window.addEventListener('agentMemoryReady', () => {
+        clearTimeout(timeout);
+        resolve();
+      }, { once: true });
+    });
+  }
+
+  async getContext(options = {}) {
+    if (!this.available) return null;
+    
+    try {
+      const result = await window.agentMemory.getContext(options);
+      return result.success ? result.data : null;
+    } catch (error) {
+      console.error('Memory context error:', error);
+      return null;
+    }
+  }
+}</code>
+    </div>
+
+    <button onclick="testProductionCode()">Test Production Code</button>
+    <div id="productionResult" class="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    // Check protocol availability on load
+    checkProtocolStatus();
+
+    async function checkProtocolStatus() {
+      const statusElement = document.getElementById('status');
+      const statusText = document.getElementById('statusText');
+
+      if (window.agentMemory) {
+        const status = window.agentMemory.getStatus();
+        statusElement.className = 'status success';
+        statusText.textContent = `Protocol available with ${status.providerCount} provider(s)`;
+      } else {
+        // Wait a bit for extension to load
+        setTimeout(() => {
+          if (window.agentMemory) {
+            checkProtocolStatus();
+          } else {
+            statusElement.className = 'status error';
+            statusText.textContent = 'Memory Protocol not found. Please install a compatible extension.';
+          }
+        }, 1000);
+      }
+    }
+
+    // Basic usage test
+    async function testBasicUsage() {
+      const result = document.getElementById('basicResult');
+      result.style.display = 'block';
+      result.textContent = 'Testing basic usage...';
+
+      try {
+        if (!window.agentMemory) {
+          result.textContent = 'Error: Memory Protocol not available';
+          return;
+        }
+
+        const context = await window.agentMemory.getContext({
+          relevanceQuery: 'web development',
+          timeRange: { start: Date.now() - (7 * 24 * 60 * 60 * 1000) }, // Last 7 days
+          topK: 10
+        });
+
+        result.textContent = JSON.stringify(context, null, 2);
+      } catch (error) {
+        result.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    // Test with different options
+    async function testWithOptions() {
+      const result = document.getElementById('basicResult');
+      result.style.display = 'block';
+      result.textContent = 'Testing with custom options...';
+
+      try {
+        const context = await window.agentMemory.getContext({
+          timeRange: { start: Date.now() - 24 * 60 * 60 * 1000, end: Date.now() },
+          format: 'narrative',
+          categories: ['development', 'learning']
+        });
+
+        result.textContent = JSON.stringify(context, null, 2);
+      } catch (error) {
+        result.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    // Test multi-provider aggregation
+    async function testMultiProvider() {
+      const result = document.getElementById('basicResult');
+      result.style.display = 'block';
+      result.textContent = 'Testing multi-provider aggregation...';
+
+      try {
+        const context = await window.agentMemory.getAggregatedContext({
+          timeRange: { start: Date.now() - 7 * 24 * 60 * 60 * 1000, end: Date.now() },
+          topK: 15
+        });
+
+        result.textContent = JSON.stringify(context, null, 2);
+      } catch (error) {
+        result.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    // Check status
+    function checkStatus() {
+      const result = document.getElementById('advancedResult');
+      result.style.display = 'block';
+
+      if (!window.agentMemory) {
+        result.textContent = 'Memory Protocol not available';
+        return;
+      }
+
+      const status = window.agentMemory.getStatus();
+      result.textContent = JSON.stringify(status, null, 2);
+    }
+
+    // List providers
+    function listProviders() {
+      const result = document.getElementById('advancedResult');
+      result.style.display = 'block';
+
+      if (!window.agentMemory) {
+        result.textContent = 'Memory Protocol not available';
+        return;
+      }
+
+      const providers = window.agentMemory.getProviders();
+      const providerInfo = providers.map(p => ({
+        id: p.providerId,
+        name: p.providerName,
+        version: p.version,
+        hasPermission: p.isPermissionGranted()
+      }));
+
+      result.textContent = JSON.stringify(providerInfo, null, 2);
+    }
+
+    // Request permission
+    async function requestPermission() {
+      const result = document.getElementById('advancedResult');
+      result.style.display = 'block';
+      result.textContent = 'Requesting permission...';
+
+      try {
+        const permission = await window.agentMemory.requestPermission({
+          appName: 'Direct API Example',
+          appId: 'direct-api-example',
+          description: 'Testing direct Memory Protocol API usage'
+        });
+
+        result.textContent = JSON.stringify(permission, null, 2);
+      } catch (error) {
+        result.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    // Test error handling
+    async function testErrorHandling() {
+      const result = document.getElementById('errorResult');
+      result.style.display = 'block';
+
+      // Safe context retrieval function
+      async function safeGetContext(options = {}) {
+        if (!window.agentMemory) {
+          return { error: 'Protocol not available', code: 'NOT_AVAILABLE' };
+        }
+
+        const providers = window.agentMemory.getProviders();
+        if (providers.length === 0) {
+          return { error: 'No providers installed', code: 'NO_PROVIDERS' };
+        }
+
+        try {
+          const context = await window.agentMemory.getContext(options);
+          return context;
+        } catch (error) {
+          return { error: error.message, code: 'REQUEST_FAILED' };
+        }
+      }
+
+      const response = await safeGetContext({ timeRange: { start: Date.now() - 60 * 60 * 1000, end: Date.now() } });
+      result.textContent = JSON.stringify(response, null, 2);
+    }
+
+    // Test production-ready code
+    async function testProductionCode() {
+      const result = document.getElementById('productionResult');
+      result.style.display = 'block';
+      result.textContent = 'Testing production code...';
+
+      // Production-ready client
+      class MemoryProtocolClient {
+        constructor(config = {}) {
+          this.config = { timeout: 2000, ...config };
+          this.available = false;
+        }
+
+        async init() {
+          if (!window.agentMemory) {
+            await this.waitForProtocol();
+          }
+          this.available = !!window.agentMemory;
+          return this.available;
+        }
+
+        waitForProtocol() {
+          return new Promise(resolve => {
+            if (window.agentMemory) {
+              resolve();
+              return;
+            }
+
+            const timeout = setTimeout(resolve, this.config.timeout);
+            window.addEventListener('agentMemoryReady', () => {
+              clearTimeout(timeout);
+              resolve();
+            }, { once: true });
+          });
+        }
+
+        async getContext(options = {}) {
+          if (!this.available) return null;
+          
+          try {
+            const result = await window.agentMemory.getContext(options);
+            return result.success ? result.data : null;
+          } catch (error) {
+            console.error('Memory context error:', error);
+            return null;
+          }
+        }
+
+        isAvailable() {
+          return this.available;
+        }
+      }
+
+      // Test the client
+      const client = new MemoryProtocolClient();
+      const initialized = await client.init();
+
+      if (initialized) {
+        const context = await client.getContext({ timeRange: { start: Date.now() - 24 * 60 * 60 * 1000, end: Date.now() } });
+        result.textContent = `Initialized: ${initialized}\n\n` + 
+                           `Context: ${JSON.stringify(context, null, 2)}`;
+      } else {
+        result.textContent = 'Client failed to initialize - no Memory Protocol available';
+      }
+    }
+
+    function clearResults() {
+      document.querySelectorAll('.result').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+      });
+    }
+  </script>
+</body>
+</html>

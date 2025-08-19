@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Protocol - Granular Permissions Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .permission-card {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+
+    .permission-granted {
+      border-left: 4px solid #28a745;
+      background: #d4edda;
+    }
+
+    .permission-denied {
+      border-left: 4px solid #dc3545;
+      background: #f8d7da;
+    }
+
+    .permission-pending {
+      border-left: 4px solid #ffc107;
+      background: #fff3cd;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+
+    button:hover { background: #0056b3; }
+    button:disabled { background: #6c757d; cursor: not-allowed; }
+
+    .capability-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .capability-item {
+      text-align: center;
+      padding: 15px;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+    }
+
+    .capability-granted {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+
+    .capability-denied {
+      background: #f8d7da;
+      border-color: #dc3545;
+    }
+
+    .result {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 13px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Memory Protocol - Granular Permissions</h1>
+    <p>Demonstrate separate read/write permissions between website and extension</p>
+  </div>
+
+  <div class="permission-card">
+    <h3>Current Permissions Status</h3>
+    <div class="capability-grid">
+      <div id="readCapability" class="capability-item">
+        <strong>Read Context</strong>
+        <div>Status: <span id="readStatus">Unknown</span></div>
+      </div>
+      <div id="writeCapability" class="capability-item">
+        <strong>Write Context</strong>
+        <div>Status: <span id="writeStatus">Unknown</span></div>
+      </div>
+      <div id="writeCapability" class="capability-item">
+        <strong>Write Context</strong>
+        <div>Status: <span id="writeStatus">Unknown</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="permission-card">
+    <h3>Request Specific Permissions</h3>
+    
+    <h4>Read-Only Access</h4>
+    <p>Request permission to read browsing context only</p>
+    <button onclick="requestReadOnlyPermission()">Request Read-Only Permission</button>
+    
+    <h4>Read + Write Access</h4>
+    <p>Request permission to read context and contribute memories</p>
+    <button onclick="requestReadWritePermission()">Request Read+Write Permission</button>
+    
+    <h4>Full Write Context Access</h4>
+    <p>Request all permissions including write context sharing</p>
+    <button onclick="requestFullPermission()">Request Full Permission</button>
+
+    <div id="permissionResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="permission-card">
+    <h3>Test Operations</h3>
+    
+    <button onclick="testReadContext()" id="readBtn">Test Read Context</button>
+    <button onclick="testWriteMemory()" id="writeBtn">Test Write Memory</button>
+    <button onclick="testWrite ContextContext()" id="writeBtn">Test Write Context</button>
+
+    <div id="operationResult" class="result" style="display: none;"></div>
+  </div>
+
+  <!-- Mock implementation for demo -->
+  <script>
+    // Mock SDK implementation
+    const MemorySDK = {
+      initMemoryClient: async (config) => ({
+        available: true,
+        providersInstalled: true,
+        permissionGranted: false,
+        provider: { providerId: 'mock', providerName: 'Mock Provider' },
+        config,
+        __mockMode: true,
+      }),
+      
+      requestPermission: async (client, appInfo) => {
+        console.log("Requesting permission:", appInfo);
+        const capabilities = appInfo.requestedCapabilities || {};
+        return {
+          granted: true,
+          capabilities: {
+            read: capabilities.read || false,
+            write: capabilities.write || false,
+            write: capabilities.write || false,
+          }
+        };
+      },
+      
+      hasPermission: (client, capability) => {
+        // Mock implementation - check stored permissions
+        const storedPermissions = JSON.parse(localStorage.getItem('mockPermissions') || '{}');
+        return storedPermissions[capability] || false;
+      },
+      
+      getContext: async (client) => {
+        if (!MemorySDK.hasPermission(client, 'read')) {
+          throw new Error('Read permission required');
+        }
+        return {
+          success: true,
+          data: {
+            memories: [
+              { text: 'Mock memory content', relevance: 0.8, timestamp: Date.now(), source: 'mock' }
+            ]
+          }
+        };
+      },
+      
+      contributeMemory: async (client, memories) => {
+        if (!MemorySDK.hasPermission(client, 'write')) {
+          throw new Error('Write permission required');
+        }
+        return {
+          success: true,
+          processed: true,
+          memoriesAccepted: memories.length
+        };
+      },
+      
+      provideContext: async (client, context) => {
+        if (!MemorySDK.hasPermission(client, 'write')) {
+          throw new Error('Write Context permission required');
+        }
+        return {
+          success: true,
+          processed: true,
+          memoriesAccepted: context.memories.length
+        };
+      }
+    };
+
+    let client = null;
+    let currentPermissions = { read: false, write: false, write: false };
+
+    // Initialize client on load
+    window.addEventListener('load', async () => {
+      client = await MemorySDK.initMemoryClient({
+        appName: 'Permission Demo App',
+        appId: 'permission-demo'
+      });
+      updatePermissionUI();
+    });
+
+    function updatePermissionUI() {
+      const stored = JSON.parse(localStorage.getItem('mockPermissions') || '{}');
+      currentPermissions = {
+        read: stored.read || false,
+        write: stored.write || false,
+        write: stored.write || false
+      };
+
+      // Update capability indicators
+      updateCapability('read', currentPermissions.read);
+      updateCapability('write', currentPermissions.write);
+      updateCapability('write', currentPermissions.write);
+      
+      // Enable/disable buttons based on permissions
+      document.getElementById('readBtn').disabled = !currentPermissions.read;
+      document.getElementById('writeBtn').disabled = !currentPermissions.write;
+      document.getElementById('writeBtn').disabled = !currentPermissions.write;
+    }
+
+    function updateCapability(capability, granted) {
+      const element = document.getElementById(`${capability}Capability`);
+      const status = document.getElementById(`${capability}Status`);
+      
+      if (granted) {
+        element.classList.add('capability-granted');
+        element.classList.remove('capability-denied');
+        status.textContent = 'Granted';
+      } else {
+        element.classList.add('capability-denied');
+        element.classList.remove('capability-granted');
+        status.textContent = 'Denied';
+      }
+    }
+
+    function storePermissions(permissions) {
+      localStorage.setItem('mockPermissions', JSON.stringify(permissions));
+      updatePermissionUI();
+    }
+
+    async function requestReadOnlyPermission() {
+      const resultEl = document.getElementById('permissionResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Requesting read-only permission...';
+
+      try {
+        const result = await MemorySDK.requestPermission(client, {
+          appName: 'Permission Demo',
+          appId: 'permission-demo',
+          description: 'Request read-only access to browsing context',
+          requestedCapabilities: {
+            read: true,
+            write: false,
+            write: false
+          }
+        });
+
+        if (result.granted && result.capabilities) {
+          storePermissions(result.capabilities);
+          resultEl.textContent = `Permission granted!\nCapabilities: ${JSON.stringify(result.capabilities, null, 2)}`;
+        } else {
+          resultEl.textContent = 'Permission denied';
+        }
+      } catch (error) {
+        resultEl.textContent = `Error: ${error.message}`;
+      }
+    }
+
+    async function requestReadWritePermission() {
+      const resultEl = document.getElementById('permissionResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Requesting read+write permission...';
+
+      try {
+        const result = await MemorySDK.requestPermission(client, {
+          appName: 'Permission Demo',
+          appId: 'permission-demo',
+          description: 'Request read and write access to memory context',
+          requestedCapabilities: {
+            read: true,
+            write: true,
+            write: false
+          }
+        });
+
+        if (result.granted && result.capabilities) {
+          storePermissions(result.capabilities);
+          resultEl.textContent = `Permission granted!\nCapabilities: ${JSON.stringify(result.capabilities, null, 2)}`;
+        } else {
+          resultEl.textContent = 'Permission denied';
+        }
+      } catch (error) {
+        resultEl.textContent = `Error: ${error.message}`;
+      }
+    }
+
+    async function requestFullPermission() {
+      const resultEl = document.getElementById('permissionResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Requesting full write permission...';
+
+      try {
+        const result = await MemorySDK.requestPermission(client, {
+          appName: 'Permission Demo',
+          appId: 'permission-demo',
+          description: 'Request full write access including context sharing',
+          requestedCapabilities: {
+            read: true,
+            write: true,
+            write: true
+          }
+        });
+
+        if (result.granted && result.capabilities) {
+          storePermissions(result.capabilities);
+          resultEl.textContent = `Permission granted!\nCapabilities: ${JSON.stringify(result.capabilities, null, 2)}`;
+        } else {
+          resultEl.textContent = 'Permission denied';
+        }
+      } catch (error) {
+        resultEl.textContent = `Error: ${error.message}`;
+      }
+    }
+
+    async function testReadContext() {
+      const resultEl = document.getElementById('operationResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Testing read context...';
+
+      try {
+        const result = await MemorySDK.getContext(client);
+        resultEl.textContent = `Read Context Success!\n${JSON.stringify(result, null, 2)}`;
+      } catch (error) {
+        resultEl.textContent = `Read Context Failed: ${error.message}`;
+      }
+    }
+
+    async function testWriteMemory() {
+      const resultEl = document.getElementById('operationResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Testing write memory...';
+
+      try {
+        const result = await MemorySDK.contributeMemory(client, [
+          { text: 'Test memory from website', relevance: 0.8, timestamp: Date.now(), source: 'test' }
+        ]);
+        resultEl.textContent = `Write Memory Success!\n${JSON.stringify(result, null, 2)}`;
+      } catch (error) {
+        resultEl.textContent = `Write Memory Failed: ${error.message}`;
+      }
+    }
+
+    async function testWrite ContextContext() {
+      const resultEl = document.getElementById('operationResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Testing write context...';
+
+      try {
+        const result = await MemorySDK.provideContext(client, {
+          memories: [
+            { text: 'Write Context context from website', relevance: 0.9, timestamp: Date.now(), source: 'write-test' }
+          ],
+          contextType: 'test'
+        });
+        resultEl.textContent = `Write Context Context Success!\n${JSON.stringify(result, null, 2)}`;
+      } catch (error) {
+        resultEl.textContent = `Write Context Context Failed: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

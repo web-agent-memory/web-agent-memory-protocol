@@ -1,0 +1,19 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"declarationDir": "./dist/types",
+		"outDir": "./dist",
+		"rootDir": ".",
+		"tsBuildInfoFile": "./dist/.tsbuildinfo"
+	},
+	"include": ["client-sdk/**/*", "protocol/**/*"],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"**/*.test.ts",
+		"**/*.spec.ts",
+		"examples",
+		"src",
+		"extension-sdk"
+	]
+}

@@ -1,0 +1,48 @@
+{
+	"manifest_version": 3,
+	"name": "Memory Protocol Demo Extension",
+	"version": "1.0.0",
+	"description": "Reference implementation of the Memory Protocol browser API specification",
+
+	"permissions": ["activeTab", "storage", "tabs", "history", "scripting"],
+
+	"host_permissions": ["<all_urls>"],
+
+	"background": {
+		"service_worker": "background.js"
+	},
+
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["content-script.js"],
+			"run_at": "document_start",
+			"all_frames": false
+		}
+	],
+
+	"action": {
+		"default_popup": "popup.html",
+		"default_title": "Memory Protocol Demo",
+		"default_icon": {
+			"16": "icons/icon-16.png",
+			"32": "icons/icon-32.png",
+			"48": "icons/icon-48.png",
+			"128": "icons/icon-128.png"
+		}
+	},
+
+	"icons": {
+		"16": "icons/icon-16.png",
+		"32": "icons/icon-32.png",
+		"48": "icons/icon-48.png",
+		"128": "icons/icon-128.png"
+	},
+
+	"web_accessible_resources": [
+		{
+			"resources": ["injected-script.js"],
+			"matches": ["<all_urls>"]
+		}
+	]
+}

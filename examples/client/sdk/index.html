@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Protocol - Client SDK Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .status.success { background: #d4edda; border-left: 4px solid #28a745; }
+    .status.error { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .status.warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+
+    .code-block {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 14px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+
+    button:hover { background: #0056b3; }
+    button:disabled { background: #6c757d; cursor: not-allowed; }
+
+    .result {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 13px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .benefit {
+      background: #e8f5e8;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    .example-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .feature-card {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .toggle-group label {
+      margin-right: 10px;
+      font-weight: 500;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Memory Protocol - Client SDK Usage</h1>
+    <p>Type-safe wrapper with advanced features</p>
+  </div>
+
+  <div id="status" class="status warning">
+    <strong>Status:</strong> <span id="statusText">Initializing SDK...</span>
+  </div>
+
+  <div class="benefit">
+    <h3>🎯 Benefits of SDK Usage</h3>
+    <ul>
+      <li><strong>Type Safety:</strong> Full TypeScript support and autocompletion</li>
+      <li><strong>Mock Mode:</strong> Development without installing extensions</li>
+      <li><strong>Error Handling:</strong> Comprehensive error management</li>
+      <li><strong>Analytics:</strong> Built-in usage tracking</li>
+      <li><strong>UI Components:</strong> Install prompts and helpers</li>
+      <li><strong>Framework Integration:</strong> React hooks, Vue composables</li>
+    </ul>
+  </div>
+
+  <div class="example-section">
+    <h2>SDK Configuration</h2>
+    
+    <div class="code-block">
+      <code>import { initMemoryClient } from '@wamp/client-sdk';
+
+const client = await initMemoryClient({
+  appName: 'My AI Assistant',
+  appId: 'my-ai-assistant',
+  mockMode: true,           // Use mock data for development
+  showInstallPrompt: true,  // Show install UI if needed
+  debug: true
+});</code>
+    </div>
+
+    <div class="toggle-group">
+      <label><input type="checkbox" id="mockMode" checked> Mock Mode</label>
+      <label><input type="checkbox" id="showInstallPrompt" checked> Install Prompt</label>
+      <label><input type="checkbox" id="debug"> Debug Mode</label>
+    </div>
+
+    <button onclick="initializeSDK()">Initialize SDK</button>
+
+    <div id="initResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="example-section">
+    <h2>Context Retrieval</h2>
+    
+    <div class="code-block">
+      <code>// Type-safe context retrieval
+import { getContext } from '@wamp/client-sdk';
+
+const result = await getContext(client, {
+  relevanceQuery: 'AI development',
+  timeRange: { start: Date.now() - (7 * 24 * 60 * 60 * 1000) }, // Last 7 days
+  topK: 30,
+});
+
+if (result.success) {
+  console.log('Memories:', result.data.memories);
+} else {
+  console.error('Error:', result.error.message);
+}</code>
+    </div>
+
+    <button onclick="getContext()">Get Context</button>
+    <button onclick="getContextWithOptions()">Get Context with Options</button>
+
+    <div id="contextResult" class="result" style="display: none;"></div>
+  </div>
+
+  <div class="example-section">
+    <h2>Write Context</h2>
+    <div class="code-block">
+      <code>import { provideContext, contributeMemory, createMemories, createConversationContext } from '@wamp/client-sdk';
+
+// Contribute a single memory
+const memories = createMemories('User is interested in web performance.');
+await contributeMemory(client, memories, 'MyWebApp');
+
+// Provide context from a conversation
+const conversation = [
+  { role: 'user', content: 'How does the memory protocol work?' },
+  { role: 'assistant', content: 'It standardizes browser context access.' }
+];
+const conversationContext = createConversationContext(conversation);
+await provideContext(client, conversationContext);
+      </code>
+    </div>
+    <button onclick="testWriteContext()">Test Write Context</button>
+    <div id="writeResult" class="result" style="display: none;"></div>
+  </div>
+
+  <!-- Mock SDK Implementation for Demo -->
+  <script>
+    // Mock SDK for demonstration (normally imported from npm)
+    const MemoryProtocolMocks = {
+      initMemoryClient: async (config) => {
+        console.log("Initializing mock client with config:", config);
+        return {
+          available: config.mockMode || (window.agentMemory ? true : false),
+          providersInstalled: config.mockMode || (window.agentMemory?.getProviders().length > 0),
+          permissionGranted: true,
+          provider: config.mockMode ? { providerId: 'mock', providerName: 'Mock Provider' } : null,
+          config,
+          __mockMode: config.mockMode,
+          __protocol: window.agentMemory,
+        };
+      },
+      getContext: async (client, options) => {
+        console.log("Getting context with options:", options);
+        if (client.__mockMode) {
+          return {
+            success: true,
+            data: {
+              memories: [
+                { text: 'Mock memory for development', relevance: 0.9, timestamp: Date.now(), source: 'mock' },
+                { text: 'User recently searched for "web performance"', relevance: 0.8, timestamp: Date.now() - 10000, source: 'mock-search' },
+              ],
+            },
+            metadata: { generatedAt: Date.now(), provider: { id: 'mock', name: 'Mock Provider', version: '1.0.0' }, dataSource: { timeRange: { start: Date.now() - 7 * 24 * 60 * 60 * 1000, end: Date.now() }, categories: ['mock'] }, isMockData: true },
+          };
+        }
+        return window.agentMemory.getContext(options);
+      },
+      provideContext: async (client, context, options) => {
+        console.log("Providing context:", context, "with options:", options);
+        if(client.__mockMode) {
+          return { success: true, processed: true, acknowledged: true, memoriesAccepted: context.memories.length, memoriesRejected: 0, contextId: `mock_${Date.now()}` };
+        }
+        return window.agentMemory.provideContext(context, options);
+      },
+      contributeMemory: async (client, memories, source) => {
+        console.log("Contributing memories:", memories, "from source:", source);
+        if(client.__mockMode) {
+          return { success: true, processed: true, acknowledged: true, memoriesAccepted: memories.length, memoriesRejected: 0, contextId: `mock_${Date.now()}` };
+        }
+        return window.agentMemory.contributeMemory(memories, source);
+      },
+      createMemories: (content, options) => {
+        const contents = Array.isArray(content) ? content : [content];
+        return contents.map(text => ({ text, relevance: 0.8, timestamp: Date.now(), source: 'user-input', ...options }));
+      },
+      createConversationContext: (messages, options) => {
+        const memories = messages.map((msg, i) => ({ text: `${msg.role}: ${msg.content}`, relevance: 0.7 + (i/messages.length)*0.3, timestamp: Date.now(), source: 'conversation' }));
+        return { memories, contextType: 'conversation', ...options };
+      }
+    };
+
+    // In a real app, you would do: import * as MemorySDK from '@wamp/client-sdk';
+    const MemorySDK = MemoryProtocolMocks;
+    let client = null;
+
+    // Initialize on load
+    window.addEventListener('load', () => {
+      setTimeout(initializeSDK, 500);
+    });
+
+    async function initializeSDK() {
+      const statusElement = document.getElementById('status');
+      const statusText = document.getElementById('statusText');
+      const resultEl = document.getElementById('initResult');
+
+      statusText.textContent = 'Initializing...';
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Initializing SDK...';
+
+      try {
+        const config = {
+          appName: 'SDK Example App',
+          appId: 'sdk-example',
+          mockMode: document.getElementById('mockMode').checked,
+          showInstallPrompt: document.getElementById('showInstallPrompt').checked,
+          debug: document.getElementById('debug').checked,
+        };
+
+        client = await MemorySDK.initMemoryClient(config);
+
+        if (client.available) {
+          statusElement.className = 'status success';
+          statusText.textContent = `SDK initialized successfully (${client.config.mockMode ? 'Mock Mode' : 'Live Mode'})`;
+        } else {
+          statusElement.className = 'status error';
+          statusText.textContent = 'SDK initialized but no providers available';
+        }
+
+        resultEl.textContent = JSON.stringify({ ...client, __protocol: undefined }, null, 2);
+
+      } catch (error) {
+        statusElement.className = 'status error';
+        statusText.textContent = 'SDK initialization failed';
+        resultEl.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function getContext() {
+      const resultEl = document.getElementById('contextResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Getting context...';
+
+      if (!client) {
+        resultEl.textContent = 'Error: SDK not initialized';
+        return;
+      }
+
+      try {
+        const context = await MemorySDK.getContext(client, {
+          relevanceQuery: 'web development',
+          timeRange: { start: Date.now() - 7 * 24 * 60 * 60 * 1000, end: Date.now() },
+          topK: 10
+        });
+
+        resultEl.textContent = JSON.stringify(context, null, 2);
+      } catch (error) {
+        resultEl.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function getContextWithOptions() {
+      const resultEl = document.getElementById('contextResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Getting context with custom options...';
+
+      try {
+        const context = await MemorySDK.getContext(client, {
+          timeRange: { start: Date.now() - 24 * 60 * 60 * 1000, end: Date.now() },
+          categories: ['development', 'learning'],
+          topK: 15
+        });
+
+        resultEl.textContent = JSON.stringify(context, null, 2);
+      } catch (error) {
+        resultEl.textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function testWriteContext() {
+      const resultEl = document.getElementById('writeResult');
+      resultEl.style.display = 'block';
+      resultEl.textContent = 'Testing write context...';
+
+      if (!client) {
+        resultEl.textContent = 'Error: SDK not initialized';
+        return;
+      }
+
+      try {
+        // 1. Contribute a single memory
+        const memories = MemorySDK.createMemories('User is interested in web performance.');
+        const contribResult = await MemorySDK.contributeMemory(client, memories, 'MyWebApp');
+
+        // 2. Provide context from a conversation
+        const conversation = [
+          { role: 'user', content: 'How does the memory protocol work?' },
+          { role: 'assistant', content: 'It standardizes browser context access.' }
+        ];
+        const conversationContext = MemorySDK.createConversationContext(conversation);
+        const provideResult = await MemorySDK.provideContext(client, conversationContext);
+
+        resultEl.textContent = `Contribute Memory Result:\n${JSON.stringify(contribResult, null, 2)}\n\nProvide Context Result:\n${JSON.stringify(provideResult, null, 2)}`;
+
+      } catch (error) {
+        resultEl.textContent = 'Error: ' + error.message;
+      }
+    }
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+packages:
+  - 'client-sdk'
+  - 'extension-sdk'
+  - 'protocol'
+
+onlyBuiltDependencies:
+  - unrs-resolver

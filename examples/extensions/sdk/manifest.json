@@ -1,0 +1,31 @@
+{
+	"manifest_version": 3,
+	"name": "Minimal Memory Provider",
+	"version": "1.0.0",
+	"description": "A minimal Memory Protocol provider built with the Extension SDK",
+
+	"permissions": ["storage", "activeTab"],
+
+	"optional_permissions": ["history"],
+
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["content-script.js"],
+			"run_at": "document_start"
+		}
+	],
+
+	"web_accessible_resources": [
+		{
+			"resources": ["*"],
+			"matches": ["<all_urls>"]
+		}
+	],
+
+	"icons": {
+		"16": "icon-16.png",
+		"48": "icon-48.png",
+		"128": "icon-128.png"
+	}
+}
