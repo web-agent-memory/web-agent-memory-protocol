@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Agent Memory Protocol (WAMP): Building a Shared Memory Layer for the Web</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292f;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            background-color: #ffffff;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            color: #1f2328;
+            border-bottom: 1px solid #d1d9e0;
+            padding-bottom: 0.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            color: #1f2328;
+            border-bottom: 1px solid #d1d9e0;
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        h3 {
+            color: #1f2328;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .badges {
+            margin: 1rem 0;
+        }
+        
+        .badges img {
+            margin: 0 0.25rem;
+        }
+        
+        .repo-link {
+            background-color: #f6f8fa;
+            border: 1px solid #d1d9e0;
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .repo-link a {
+            color: #0969da;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .repo-link a:hover {
+            text-decoration: underline;
+        }
+        
+        pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            border: 1px solid #d1d9e0;
+        }
+        
+        code {
+            background-color: #eff1f3;
+            border-radius: 3px;
+            padding: 0.2em 0.4em;
+            font-size: 85%;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        a {
+            color: #0969da;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        ul {
+            padding-left: 2rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .warning {
+            background-color: #fff8c5;
+            border: 1px solid #d1d9e0;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid #fb8500;
+        }
+        
+        .warning strong {
+            color: #9a6700;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #d1d9e0;
+            margin: 2rem 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #d1d9e0;
+        }
+        
+        .authors {
+            margin: 1rem 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Web Agent Memory Protocol (WAMP): Building a Shared Memory Layer for the Web</h1>
+        
+        <div class="badges">
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">
+                <img src="https://img.shields.io/github/stars/web-agent-memory/web-agent-memory-protocol?style=social" alt="GitHub stars">
+            </a>
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol/fork">
+                <img src="https://img.shields.io/github/forks/web-agent-memory/web-agent-memory-protocol?style=social" alt="GitHub forks">
+            </a>
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol/blob/main/LICENSE">
+                <img src="https://img.shields.io/github/license/web-agent-memory/web-agent-memory-protocol" alt="License">
+            </a>
+        </div>
+        
+        <div class="repo-link">
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">📖 View Repository</a>
+        </div>
+    </div>
+
+    <p>Over the past year, an interesting trend has emerged in the world of AI assistants. A handful of browser extensions, like <a href="https://chromewebstore.google.com/detail/openmemory/onihkkbipkfeijkadecaafbgagkhglop">OpenMemory</a>, <a href="https://chromewebstore.google.com/detail/memsync/ekhglfoplnmigdhkifhegcdjmjkbljom">MemSync</a>, and <a href="https://chromewebstore.google.com/detail/squash-browser-memory-for/cbemgpconhoibnbbgjbeengcojcoeimh">Squash</a>, have begun experimenting with ways to give AI models "memory" across websites. The idea is simple: instead of each app starting from scratch, your AI should be able to recall your preferences, your workflows, and even your style of writing. In practice, however, every one of these projects has had to reinvent the wheel.</p>
+
+    <p>Today, most extensions hack their way into context-sharing. They scrape chat logs from ChatGPT, Claude, or Perplexity. They inject text directly into the page. They build one-off integrations, site by site, with brittle assumptions about DOM structures. It works, but only barely. Each new app means another round of patchwork engineering.</p>
+
+    <p>That's where we started asking: what if memory was a first-class web primitive? What if AI agents could talk to a shared memory layer as easily as they check for <code>navigator.geolocation</code>? That question led to the creation of the <strong><a href="https://github.com/web-agent-memory/web-agent-memory-protocol">Web Agent Memory Protocol (WAMP)</a></strong>.</p>
+
+    <hr>
+
+    <h2>Why Now?</h2>
+
+    <p>We're at a turning point. More and more apps are shipping with embedded AI agents, and users are beginning to expect them to feel personal. But real personalization requires context. Without it, every assistant is stuck playing the role of a clever but forgetful stranger.</p>
+
+    <p>The rise of these extensions shows that the demand is already here. What's missing is standardization. Without it, we're headed for a fragmented ecosystem of siloed memories, each trapped inside its own app. The web works best when shared APIs make capabilities universal. Memory should be no different.</p>
+
+    <hr>
+
+    <h2>Introducing WAMP</h2>
+
+    <p>The <strong><a href="https://github.com/web-agent-memory/web-agent-memory-protocol">Web Agent Memory Protocol (WAMP)</a></strong> is a standardized browser API that lets extensions expose structured, contextual memory to any website or AI agent. It defines a minimal surface area that both sides can rely on.</p>
+
+    <p>Instead of building brittle, app-specific integrations, sites can just ask: <em>what's relevant for this user right now?</em> Extensions handle the details of how memory is stored, scored, and updated.</p>
+
+    <p>Think of it as a plug-and-play layer for contextual computing:</p>
+
+    <ul>
+        <li><strong>Websites</strong> can request and contribute memory in a structured way.</li>
+        <li><strong>Extensions</strong> can decide what memory to expose and how to generate it.</li>
+        <li><strong>Users</strong> stay in control of what's shared, with explicit permissions and revocable access.</li>
+    </ul>
+
+    <hr>
+
+    <h2>The WAMP Specification</h2>
+
+    <p><a href="https://github.com/web-agent-memory/web-agent-memory-protocol">WAMP</a> defines a native browser API specification that extensions implement by injecting <code>window.agentMemory</code>. The spec includes standardized methods for reading context, writing memories, and managing permissions.</p>
+
+    <h3>Core API Overview</h3>
+
+    <pre><code>interface AgentMemoryRegistry {
+  // Core properties
+  ...
+  
+  // Provider management
+  registerProvider(provider: MemoryProvider): void
+  unregisterProvider(providerId: string): boolean
+  getProviders(): MemoryProvider[]
+  getProvider(providerId: string): MemoryProvider | undefined
+  
+  // Read operations
+  getContext(options?: ContextOptions, providerId?: string): Promise&lt;ContextResult&gt;
+  getAggregatedContext(options?: ContextOptions): Promise&lt;AggregatedContextResult&gt;
+  
+  // Write operations
+  provideContext(context: WebAgentContext, options?: WebAgentContextOptions, providerId?: string): Promise&lt;ContextProvisionResult&gt;
+  contributeMemory(memories: Memory[], source: string, providerId?: string): Promise&lt;ContextProvisionResult&gt;
+  
+  // Permissions &amp; status
+  requestPermission(appInfo: AppInfo, providerId?: string): Promise&lt;PermissionResult&gt;
+  isPermissionGranted(providerId?: string, domain?: string): boolean
+  getStatus(): ProtocolStatus
+  getInstallationInfo(): InstallationInfo
+}</code></pre>
+
+    <p>For the examples below, we'll demonstrate the protocol using our reference implementation to give you a better feel for how the specification works in practice. <strong>Note: This is experimental code developed alongside the specification.</strong></p>
+
+    <h3>Reading from Memory</h3>
+
+    <p>To request context from the user's memory, an application can use the <code>getContext</code> method. This allows the application to retrieve relevant information within a specified time range.</p>
+
+    <pre><code>// Development/experimental code - not published on NPM
+import { initMemoryClient, getContext } from '../client-sdk';
+
+const client = await initMemoryClient({
+  appName: 'My AI Assistant', 
+  appId: 'my-ai-assistant'
+});
+
+const result = await getContext(client, {
+  timeRange: { start: Date.now() - 7 * 24 * 60 * 60 * 1000 } // Last 7 days
+});
+
+if (result.success) {
+  console.log('User context:', result.data.memories);
+}</code></pre>
+
+    <h3>Writing to Memory</h3>
+
+    <p>The most exciting part is that <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">WAMP</a> isn't just about reading from memory. It also supports writing back. Through <code>provideContext</code>, apps can contribute new experiences or observations into the memory layer.</p>
+
+    <p>For demonstration purposes, we'll show examples using our reference implementation (though the native <code>window.agentMemory</code> API works identically):</p>
+
+    <pre><code>// Development/experimental code
+import { initMemoryClient, provideContext, createConversationContext } from '../client-sdk';
+
+const client = await initMemoryClient({
+  appName: 'My AI Assistant',
+  appId: 'my-ai-assistant'
+});
+
+const conversation = [
+  { role: 'user', content: 'Tell me about memory protocol' },
+  { role: 'assistant', content: 'It is a standard for web applications...' }
+];
+
+await provideContext(client, createConversationContext(conversation));</code></pre>
+
+    <p>AI agents don't just consume context; they enrich it. Your assistant can log useful summaries, store preferences, or note corrections you've made. Over time, your memory becomes a richer, more accurate reflection of you.</p>
+
+    <h3>The Core Data Model</h3>
+
+    <p>At the heart of the protocol are <strong>memories</strong>: atomic, timestamped, relevance-scored observations. This structure makes memory interoperable across apps. One extension might just remember the last few things you read. Another might build a full knowledge graph of your work. As long as they speak the same protocol, any website can consume the context without knowing how it was generated.</p>
+
+    <pre><code>interface Memory {
+  text: string;          // Natural language description
+  relevance: number;     // 0–1 relevance score
+  timestamp: number;     // Unix epoch
+  source: string;        // e.g. 'browsing', 'ide', 'search'
+  metadata?: Record&lt;string, unknown&gt;;
+}</code></pre>
+
+    <hr>
+
+    <h2>Privacy and Permissions</h2>
+
+    <p>From day one, privacy has to be built in. <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">WAMP</a> follows a discrete permission model:</p>
+
+    <ul>
+        <li>Apps request explicit consent per domain.</li>
+        <li>Users can grant, deny, or revoke at any time.</li>
+        <li>No central storage. The protocol only defines an interface, not a backend.</li>
+    </ul>
+
+    <p>That means your memory belongs to you, not to us. The protocol ensures portability without centralizing control.</p>
+
+    <h3>Security Considerations</h3>
+
+    <div class="warning">
+        <p><strong>⚠️ Current Limitations:</strong> The current specification has several security vulnerabilities that we are actively working to address:</p>
+
+        <ul>
+            <li><strong>Application Identity</strong>: Apps currently self-declare their identity (<code>appName</code>, <code>appId</code>) without cryptographic verification, making impersonation attacks possible</li>
+            <li><strong>Domain-Based Permissions</strong>: The current domain-based permission model is insufficient for preventing malicious websites from social engineering users</li>
+            <li><strong>No Origin Verification</strong>: Extensions don't verify that requesting origins match expected legitimate applications</li>
+        </ul>
+
+        <p><strong>Roadmap to Production Security:</strong></p>
+        <ul>
+            <li>Application registry with verified identities</li>
+            <li>Cryptographic signatures for app authentication</li>
+            <li>Enhanced user consent UI with clear trust indicators</li>
+            <li>Origin verification and allowlisting mechanisms</li>
+        </ul>
+    </div>
+
+    <p>This initial specification prioritizes developer experience and protocol adoption. As the ecosystem matures, we will implement robust security measures to make <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">WAMP</a> suitable for production deployments with sensitive user data.</p>
+
+    <hr>
+
+    <h2>How This Helps Existing Projects</h2>
+
+    <p>Returning to the projects that inspired this work:</p>
+
+    <ul>
+        <li><strong><a href="https://chromewebstore.google.com/detail/openmemory/onihkkbipkfeijkadecaafbgagkhglop">OpenMemory</a></strong> could use the protocol to share its stored notes with any AI app, no scraping required.</li>
+        <li><strong><a href="https://chromewebstore.google.com/detail/memsync/ekhglfoplnmigdhkifhegcdjmjkbljom">MemSync</a></strong> could sync context between apps using the same data model, instead of custom glue.</li>
+        <li><strong><a href="https://chromewebstore.google.com/detail/squash-browser-memory-for/cbemgpconhoibnbbgjbeengcojcoeimh">Squash</a></strong> could export the browsing history it captures into a standardized interface, making it universally useful.</li>
+    </ul>
+
+    <p>Instead of siloed experiments, these extensions could plug into a common ecosystem.</p>
+
+    <h3>Building Extensions</h3>
+
+    <p>For extension developers, implementing <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">WAMP</a> is equally straightforward. Here's how you'd create a basic memory provider:</p>
+
+    <pre><code>// Development/experimental code
+import { initializeExtension } from '../extension-sdk';
+
+// Initialize extension with provider configuration
+await initializeExtension({
+  providerId: 'my-extension',
+  providerName: 'My Memory Extension',
+  version: '1.0.0',
+  
+  // Implement the getContextData method
+  async getContextData(options) {
+    const memories = await getBrowsingHistory(options?.timeRange);
+    
+    return {
+      memories: memories.map(item => ({
+        text: `User visited ${item.title}`,
+        relevance: 0.7,
+        timestamp: item.lastVisitTime,
+        source: 'browsing',
+        metadata: { url: item.url, domain: item.domain }
+      }))
+    };
+  }
+});
+
+// The extension automatically registers the provider and makes window.agentMemory available</code></pre>
+
+    <hr>
+
+    <h2>The Bigger Picture</h2>
+
+    <p>Standardizing memory is about more than saving developers time. It's about giving users agency. In a world full of AI agents, your personal memory layer is one of the most valuable digital assets you own. You should be able to pick which provider builds it, which apps can read it, and what it contains.</p>
+
+    <p>By decoupling memory from apps themselves, we move toward a healthier ecosystem: one where assistants feel genuinely personal, but without locking you into a single vendor's silo.</p>
+
+    <hr>
+
+    <h2>What's Next: Building the Spec Together</h2>
+
+    <p>This repository represents our active effort to develop a <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">Web Agent Memory Protocol (WAMP)</a> specification alongside working reference implementations. We're theorizing about what this API should look like while building, testing, and iterating on it.</p>
+
+    <p>This is very much a work-in-progress. We're developing the specification and the code together, using the reference implementation to validate that the protocol works as intended. The goal is to create something that developers will actually want to use, not just a theoretical specification.</p>
+
+    <h3>How to Contribute</h3>
+
+    <p><strong>For App Developers</strong></p>
+    <ul>
+        <li><strong>Experiment with the direct API</strong>: Test <code>window.agentMemory</code> integration patterns</li>
+        <li><strong>Try the development SDK</strong>: Clone the repo and experiment with our TypeScript utilities</li>
+        <li><strong>Provide feedback</strong>: What API patterns feel natural? What's missing?</li>
+    </ul>
+
+    <p><strong>For Extension Builders</strong></p>
+    <ul>
+        <li><strong>Build prototype providers</strong>: Use our extension SDK to create test implementations</li>
+        <li><strong>Test the specification</strong>: Does the protocol cover your use cases?</li>
+        <li><strong>Share your findings</strong>: What works? What doesn't?</li>
+    </ul>
+
+    <p><strong>For Everyone</strong></p>
+    <ul>
+        <li><strong>Review the spec</strong>: Read through our type definitions and API design</li>
+        <li><strong>Run the examples</strong>: Clone and experiment with our reference implementations</li>
+        <li><strong>Open issues</strong>: Found problems? Have ideas? We want to hear them</li>
+        <li><strong>Join the discussion</strong>: Help us shape this protocol before it's "done"</li>
+    </ul>
+
+    <p>The web didn't get powerful because every site reinvented location APIs. It got powerful because they shared a standard. Memory should be no different.</p>
+
+    <div class="footer">
+        <hr>
+        
+        <h2>Authors</h2>
+        
+        <p class="authors">
+            <strong><a href="https://github.com/victorhuangwq">Victor Huang</a></strong> and <strong><a href="https://github.com/kstonekuan">Kingston Kuan</a></strong>
+        </p>
+        
+        <p><em>August 19, 2025</em></p>
+        
+        <hr>
+        
+        <div class="badges">
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">
+                <img src="https://img.shields.io/github/stars/web-agent-memory/web-agent-memory-protocol?style=social" alt="GitHub stars">
+            </a>
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol/fork">
+                <img src="https://img.shields.io/github/forks/web-agent-memory/web-agent-memory-protocol?style=social" alt="GitHub forks">
+            </a>
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol/blob/main/LICENSE">
+                <img src="https://img.shields.io/github/license/web-agent-memory/web-agent-memory-protocol" alt="License">
+            </a>
+        </div>
+        
+        <div class="repo-link">
+            <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">📖 View Repository</a>
+        </div>
+    </div>
+</body>
+</html>
