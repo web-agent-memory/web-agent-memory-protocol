@@ -188,6 +188,45 @@
         <li><strong>Users</strong> stay in control of what's shared, with explicit permissions and revocable access.</li>
     </ul>
 
+    <h3>How WAMP Works</h3>
+
+    <pre style="font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.3; background-color: #f8f9fa; border: 1px solid #e1e4e8; padding: 1.5rem; border-radius: 6px; color: #24292f;">
+    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+    │   Website A     │    │   Website B     │    │   Website C     │
+    │   (ChatGPT)     │    │   (Claude)      │    │   (Your App)    │
+    └─────────▲───────┘    └─────────▲───────┘    └─────────▲───────┘
+              │                      │                      │
+              │                      │                      │ 
+              │                      │                      │ 
+              └──────────────────────┼──────────────────────┘
+                                     │ 
+                            ┌────────▼───────┐
+                            │ WAMP Protocol  │
+                            │                │
+                            │ • Read Memory  │
+                            │ • Write Memory │
+                            │ • Permissions  │
+                            └────────▲───────┘
+                                     │  
+              ┌──────────────────────┼──────────────────────┐
+              │                      │                      │ 
+    ┌─────────▼───────┐    ┌─────────▼───────┐    ┌─────────▼───────┐
+    │  Extension A    │    │  Extension B    │    │  Extension C    │
+    │                 │    │                 │    │                 │
+    │ • Browsing data │    │ • Chat history  │    │ • IDE context   │
+    │ • Notes         │    │ • Preferences   │    │ • Files         │
+    │ • Bookmarks     │    │ • Conversations │    │ • Git commits   │
+    └─────────────────┘    └─────────────────┘    └─────────────────┘
+    </pre>
+
+    <p><strong>Key Benefits:</strong></p>
+    <ul>
+        <li><strong>Standardized Interface</strong>: All websites use the same API regardless of which extension provides memory</li>
+        <li><strong>Multiple Providers</strong>: Users can install multiple memory extensions that work together</li>
+        <li><strong>User Control</strong>: Permissions are granted per-site and can be revoked at any time</li>
+        <li><strong>No Vendor Lock-in</strong>: Memory data can be exported/imported between compatible extensions</li>
+    </ul>
+
     <hr>
 
     <h2>The WAMP Specification</h2>

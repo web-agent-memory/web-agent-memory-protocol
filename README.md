@@ -22,28 +22,42 @@ WAMP introduces a **protocol-first design** that revolutionizes how AI applicati
 
 ## Architecture Overview
 
-WAMP provides two integration approaches:
+WAMP creates a standardized interface between websites and memory extensions:
 
 ```
-Website Option 1: Direct API (Zero Dependencies)
-┌─────────────────┐
-│   Your Website  │ ──────────┐
-└─────────────────┘           │
-                               ▼
-                    ┌─────────────────────┐
-                    │ window.agentMemory  │ ◄─── Browser Extensions
-                    │ (Standardized API)  │      (Squash, etc.)
-                    └─────────────────────┘
-
-Website Option 2: With Client SDK (Enhanced Features)  
-┌─────────────────┐    ┌─────────────────┐
-│   Your Website  │───►│ WAMP Client     │
-└─────────────────┘    │ SDK (Type       │
-                       │ Safety +        │ ◄─── window.agentMemory
-                       │ Advanced        │
-                       │ Features)       │
-                       └─────────────────┘
+    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+    │   Website A     │    │   Website B     │    │   Website C     │
+    │   (ChatGPT)     │    │   (Claude)      │    │   (Your App)    │
+    └─────────▲───────┘    └─────────▲───────┘    └─────────▲───────┘
+              │                      │                      │
+              │                      │                      │ 
+              │                      │                      │ 
+              └──────────────────────┼──────────────────────┘
+                                     │ 
+                            ┌────────▼───────┐
+                            │ WAMP Protocol  │
+                            │                │
+                            │ • Read Memory  │
+                            │ • Write Memory │
+                            │ • Permissions  │
+                            └────────▲───────┘
+                                     │  
+              ┌──────────────────────┼──────────────────────┐
+              │                      │                      │ 
+    ┌─────────▼───────┐    ┌─────────▼───────┐    ┌─────────▼───────┐
+    │  Extension A    │    │  Extension B    │    │  Extension C    │
+    │                 │    │                 │    │                 │
+    │ • Browsing data │    │ • Chat history  │    │ • IDE context   │
+    │ • Notes         │    │ • Preferences   │    │ • Files         │
+    │ • Bookmarks     │    │ • Conversations │    │ • Git commits   │
+    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+**Key Benefits:**
+- **Standardized Interface**: All websites use the same API regardless of which extension provides memory
+- **Multiple Providers**: Users can install multiple memory extensions that work together
+- **User Control**: Permissions are granted per-site and can be revoked at any time
+- **No Vendor Lock-in**: Memory data can be exported/imported between compatible extensions
 
 ## 📖 Documentation
 
