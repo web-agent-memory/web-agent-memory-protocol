@@ -1,8 +1,14 @@
+<div align="center">
+
+<img src="docs/logo.png" alt="WAMP Logo" width="120" height="120">
+
 # Web Agent Memory Protocol (WAMP) (Work In Progress)
 
 [![Work In Progress](https://img.shields.io/badge/Status-Work%20In%20Progress-yellow.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+
+</div>
 
 > ⚠️ **This is an experimental specification under active development.** We're building the spec and reference implementation together. Not ready for production use.
 
