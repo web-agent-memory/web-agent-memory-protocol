@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Agent Memory Protocol (WAMP): Building a Shared Memory Layer for the Web</title>
     <link rel="icon" href="logo.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
@@ -87,6 +90,15 @@
         pre code {
             background-color: transparent;
             padding: 0;
+        }
+
+        pre[class*="language-"] {
+            background-color: #f8f9fa;
+            border: 1px solid #e1e4e8;
+        }
+
+        code[class*="language-"] {
+            background-color: transparent;
         }
         
         a {
@@ -242,7 +254,7 @@
 
     <h3>Core API Overview</h3>
 
-    <pre><code>interface AgentMemoryRegistry {
+    <pre><code class="language-typescript">interface AgentMemoryRegistry {
   // Core properties
   ...
   
@@ -273,7 +285,7 @@
 
     <p>To request context from the user's memory, an application can use the <code>getContext</code> method. This allows the application to retrieve relevant information within a specified time range.</p>
 
-    <pre><code>// Development/experimental code - not published on NPM
+    <pre><code class="language-typescript">// Development/experimental code - not published on NPM
 import { initMemoryClient, getContext } from '../client-sdk';
 
 const client = await initMemoryClient({
@@ -295,7 +307,7 @@ if (result.success) {
 
     <p>For demonstration purposes, we'll show examples using our reference implementation (though the native <code>window.agentMemory</code> API works identically):</p>
 
-    <pre><code>// Development/experimental code
+    <pre><code class="language-typescript">// Development/experimental code
 import { initMemoryClient, provideContext, createConversationContext } from '../client-sdk';
 
 const client = await initMemoryClient({
@@ -316,7 +328,7 @@ await provideContext(client, createConversationContext(conversation));</code></p
 
     <p>At the heart of the protocol are <strong>memories</strong>: atomic, timestamped, relevance-scored observations. This structure makes memory interoperable across apps. One extension might just remember the last few things you read. Another might build a full knowledge graph of your work. As long as they speak the same protocol, any website can consume the context without knowing how it was generated.</p>
 
-    <pre><code>interface Memory {
+    <pre><code class="language-typescript">interface Memory {
   text: string;          // Natural language description
   relevance: number;     // 0–1 relevance score
   timestamp: number;     // Unix epoch
@@ -378,7 +390,7 @@ await provideContext(client, createConversationContext(conversation));</code></p
 
     <p>For extension developers, implementing <a href="https://github.com/web-agent-memory/web-agent-memory-protocol">WAMP</a> is equally straightforward. Here's how you'd create a basic memory provider:</p>
 
-    <pre><code>// Development/experimental code
+    <pre><code class="language-typescript">// Development/experimental code
 import { initializeExtension } from '../extension-sdk';
 
 // Initialize extension with provider configuration
